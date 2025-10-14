@@ -50,7 +50,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return Boolean.TRUE.equals(user.getIsVerified());
+        return user.getIsActive() && user.getIsVerified();
     }
 
     public Long getUserId() {
