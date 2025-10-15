@@ -1,16 +1,18 @@
 LibraryManagement:
   app:
     jwtSecret: "d5a39be699c069d71a37b694690af1e0"
-    jwtExpirationMs: 900000        # 15 ph�t
+    jwtExpirationMs: 900000
     refreshExpirationMs: 604800000
 
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: LibraryManagement_Monolithic
   datasource:
     url: jdbc:mysql://localhost:3306/library_db?createDatabaseIfNotExist=true
     username: root
-    password: root1234
+    password: 852349167
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
@@ -34,6 +36,10 @@ spring:
           auth: true
           starttls:
             enable: true
+
 logging:
   level:
     root: warn
+
+api:
+  base-path=/api:

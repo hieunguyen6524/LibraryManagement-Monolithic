@@ -5,9 +5,13 @@ import com.example.LibraryManagement_Monolithic.dto.response.SignupResponse;
 import com.example.LibraryManagement_Monolithic.dto.response.TokenResponse;
 import com.example.LibraryManagement_Monolithic.dto.response.UserResponse;
 import com.example.LibraryManagement_Monolithic.entity.*;
+import com.example.LibraryManagement_Monolithic.exception.BadRequestException;
+import com.example.LibraryManagement_Monolithic.exception.NotFoundException;
+import com.example.LibraryManagement_Monolithic.exception.UnauthorizedException;
 import com.example.LibraryManagement_Monolithic.repository.*;
 import com.example.LibraryManagement_Monolithic.security.CustomUserDetails;
 import com.example.LibraryManagement_Monolithic.security.JwtService;
+import com.example.LibraryManagement_Monolithic.util.TokenHasher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.util.Pair;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,7 +46,7 @@ public class AuthService {
     @Transactional
     public SignupResponse signup(String email, String password) {
         if (userRepo.existsByEmail(email)) {
-            throw new RuntimeException("Email existed");
+            throw new BadRequestException("Email existed");
         }
 
         User u = User.builder()
@@ -54,7 +58,7 @@ public class AuthService {
                 .build();
 
         Role userRole = roleRepo.findByRoleName("USER")
-                .orElseThrow(() -> new RuntimeException("Role USER not found"));
+                .orElseThrow(() -> new NotFoundException("Role USER not found"));
         u.getRoles().add(userRole);
         userRepo.save(u);
 
@@ -93,7 +97,7 @@ public class AuthService {
         User user = userRepo.findById(userDetails.getUserId()).orElseThrow();
 
         if (!user.getIsVerified()) {
-            throw new RuntimeException("Email not verified. Please verify before login.");
+            throw new UnauthorizedException("Email not verified. Please verify before login.");
         }
 
         String accessToken = jwtService.generateToken(email, roles);
@@ -134,7 +138,7 @@ public class AuthService {
         }
 
         RefreshContext rc = refreshRepo.findByContextId(refreshId)
-                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+                .orElseThrow(() -> new NotFoundException("Refresh token not found"));
 
         if (rc.getRevoked() || rc.getExpiryDate().isBefore(LocalDateTime.now()))
             throw new RuntimeException("Refresh token invalid");
@@ -184,7 +188,7 @@ public class AuthService {
     @Transactional
     public void verifyEmail(String token) {
         VerificationToken vt = verificationRepo.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token not found"));
+                .orElseThrow(() -> new NotFoundException("Token not found"));
         if (vt.getUsed()) throw new RuntimeException("Token already used");
         if (vt.getExpiryDate().isBefore(LocalDateTime.now())) throw new RuntimeException("Token expired");
 
@@ -194,6 +198,54 @@ public class AuthService {
 
         vt.setUsed(true);
         verificationRepo.save(vt);
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+
+        User user = userRepo.findByEmail(email).orElseThrow(() -> new NotFoundException("Email not found"));
+
+        if (!user.getIsVerified()) {
+            throw new UnauthorizedException("Email not verified. Please verify your email before resetting password.");
+        }
+
+        String token = UUID.randomUUID().toString();
+
+
+        String hashed = TokenHasher.hashSHA256(token);
+
+        VerificationToken verificationToken = VerificationToken.builder()
+                .token(hashed)
+                .type(VerificationToken.TokenType.RESET_PASSWORD)
+                .expiryDate(LocalDateTime.now().plusMinutes(5))
+                .user(user)
+                .emailTarget(email)
+                .used(false)
+                .build();
+        verificationRepo.save(verificationToken);
+        mailService.sendResetPasswordEmail(email, token);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword, String passwordConfirm) {
+        String hashed = TokenHasher.hashSHA256(token);
+
+        VerificationToken verificationToken = verificationRepo.findByToken(hashed).orElseThrow(() -> new NotFoundException("Token not found"));
+
+        if (verificationToken.getUsed()) {
+            throw new BadRequestException("Token has already been used");
+        }
+
+        if (verificationToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            throw new RuntimeException("Token expired");
+        }
+        verificationToken.setUsed(true);
+        verificationRepo.save(verificationToken);
+        User user = verificationToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+
+        userRepo.save(user);
     }
 
 }

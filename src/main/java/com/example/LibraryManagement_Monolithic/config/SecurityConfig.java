@@ -35,9 +35,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/users/me/**").hasRole("USER")
+                        .requestMatchers("/api/admin/user/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );
+//                .exceptionHandling(Exception -> Exception.authenticationEntryPoint().accessDeniedHandler())
+
         http.addFilterBefore(authTokenFilter(), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

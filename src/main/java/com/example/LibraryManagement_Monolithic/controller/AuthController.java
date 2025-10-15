@@ -1,6 +1,8 @@
 package com.example.LibraryManagement_Monolithic.controller;
 
+import com.example.LibraryManagement_Monolithic.dto.request.ForgotPasswordRequest;
 import com.example.LibraryManagement_Monolithic.dto.request.LoginRequest;
+import com.example.LibraryManagement_Monolithic.dto.request.ResetPasswordRequest;
 import com.example.LibraryManagement_Monolithic.dto.request.SignupRequest;
 import com.example.LibraryManagement_Monolithic.dto.response.ApiResponse;
 import com.example.LibraryManagement_Monolithic.dto.response.LoginResponse;
@@ -84,5 +86,18 @@ public class AuthController {
     public ResponseEntity<?> verify(@RequestParam("token") String token, HttpServletResponse response) {
         authService.verifyEmail(token);
         return ResponseEntity.ok(Map.of("message", "Email verified"));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.status(200).body(ApiResponse.success("Please check your email!"));
+    }
+
+    @PatchMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody ResetPasswordRequest request, @RequestParam String token) {
+        request.validate();
+        authService.resetPassword(token, request.getNewPassword(), request.getPasswordConfirm());
+        return ResponseEntity.status(200).body(ApiResponse.success("Password is changed!"));
     }
 }

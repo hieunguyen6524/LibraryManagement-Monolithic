@@ -49,7 +49,7 @@ public class MailService {
 
     public void sendChangeEmailVerification(String to, String token) {
         String subject = "Confirm your new email address";
-        String link = frontendUrl + "/change-email?token=" + token;
+        String link = frontendUrl + "/verify-change-email?token=" + token;
         String content = """
                 <h3>Confirm New Email</h3>
                 <p>Click to confirm your new email address:</p>
