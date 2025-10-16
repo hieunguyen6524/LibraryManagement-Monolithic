@@ -1,4 +1,4 @@
-package com.example.LibraryManagement_Monolithic.controller;
+package com.example.LibraryManagement_Monolithic.controller.auth;
 
 import com.example.LibraryManagement_Monolithic.dto.request.ForgotPasswordRequest;
 import com.example.LibraryManagement_Monolithic.dto.request.LoginRequest;

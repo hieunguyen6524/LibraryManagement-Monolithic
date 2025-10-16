@@ -38,7 +38,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/logout").authenticated()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/users/me/**").hasRole("USER")
-                        .requestMatchers("/api/admin/user/**").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );
 //                .exceptionHandling(Exception -> Exception.authenticationEntryPoint().accessDeniedHandler())

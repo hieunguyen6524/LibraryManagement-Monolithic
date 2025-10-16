@@ -1,4 +1,4 @@
-package com.example.LibraryManagement_Monolithic.controller;
+package com.example.LibraryManagement_Monolithic.controller.user;
 
 import com.example.LibraryManagement_Monolithic.dto.request.ChangeEmailRequest;
 import com.example.LibraryManagement_Monolithic.dto.response.ApiResponse;

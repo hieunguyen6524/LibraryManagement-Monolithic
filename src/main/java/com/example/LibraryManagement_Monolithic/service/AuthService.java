@@ -3,7 +3,6 @@ package com.example.LibraryManagement_Monolithic.service;
 import com.example.LibraryManagement_Monolithic.dto.response.LoginResponse;
 import com.example.LibraryManagement_Monolithic.dto.response.SignupResponse;
 import com.example.LibraryManagement_Monolithic.dto.response.TokenResponse;
-import com.example.LibraryManagement_Monolithic.dto.response.UserResponse;
 import com.example.LibraryManagement_Monolithic.entity.*;
 import com.example.LibraryManagement_Monolithic.exception.BadRequestException;
 import com.example.LibraryManagement_Monolithic.exception.NotFoundException;
@@ -60,6 +59,9 @@ public class AuthService {
         Role userRole = roleRepo.findByRoleName("USER")
                 .orElseThrow(() -> new NotFoundException("Role USER not found"));
         u.getRoles().add(userRole);
+
+        u.setCreatedAt(LocalDateTime.now());
+
         userRepo.save(u);
 
         String token = UUID.randomUUID().toString();
@@ -112,18 +114,18 @@ public class AuthService {
         refreshRepo.save(rc);
 
 
-        UserResponse userResponse = UserResponse.builder()
-                .userId(user.getUserId())
-                .email(user.getEmail())
-                .roles(roles)
-                .isVerified(user.getIsVerified())
-                .isActive(user.getIsActive())
-                .createdAt(user.getCreatedAt())
-                .build();
+//        UserResponse userResponse = UserResponse.builder()
+//                .userId(user.getUserId())
+//                .email(user.getEmail())
+//                .roles(roles)
+//                .isVerified(user.getIsVerified())
+//                .isActive(user.getIsActive())
+//                .createdAt(user.getCreatedAt())
+//                .build();
 
         LoginResponse loginResponse = LoginResponse.builder()
                 .accessToken(accessToken)
-                .user(userResponse)
+                .user(user)
                 .build();
 
 
